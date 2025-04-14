@@ -34,7 +34,7 @@ $controller = new GetUserPlatformAgeController($service, $validator);
 
 // Route handling
 if ($method === 'GET' && $path === '/api/users/platform-age') {
-    $controller();
+    echo $controller();
 } else {
     http_response_code(404);
     echo json_encode([

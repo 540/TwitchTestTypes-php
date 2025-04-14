@@ -34,6 +34,9 @@ class UserAccountService
         ];
     }
 
+    /**
+     * @throws \DateMalformedStringException
+     */
     private function calculateDaysSinceCreation(string $createdAt): int
     {
         $createdDate = new DateTime($createdAt);

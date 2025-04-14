@@ -9,6 +9,7 @@ use TwitchAnalytics\Application\Services\UserAccountService;
 use TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository;
 use TwitchAnalytics\Infrastructure\ApiClient\FakeTwitchApiClient;
 use TwitchAnalytics\Controllers\GetUserPlatformAge\UserNameValidator;
+use TwitchAnalytics\Infrastructure\Time\SystemTimeProvider;
 
 // CORS headers
 header('Access-Control-Allow-Origin: *');
@@ -32,7 +33,7 @@ $controller = new GetUserPlatformAgeController($service, $validator);
 
 // Route handling
 if ($method === 'GET' && $path === '/api/users/platform-age') {
-    $controller();
+    echo $controller();
 } else {
     http_response_code(404);
     echo json_encode([

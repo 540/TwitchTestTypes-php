@@ -13,6 +13,7 @@ use TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository;
 use TwitchAnalytics\Infrastructure\ApiClient\FakeTwitchApiClient;
 use TwitchAnalytics\Controllers\GetUserPlatformAge\UserNameValidator;
 use TwitchAnalytics\Domain\Time\TimeProvider;
+use Illuminate\Http\Request;
 
 class GetUserPlatformAgeControllerTest extends TestCase
 {
@@ -26,6 +27,7 @@ class GetUserPlatformAgeControllerTest extends TestCase
         $apiClient = new FakeTwitchApiClient();
         $repository = new ApiUserRepository($apiClient);
         $this->timeProvider = Mockery::mock(TimeProvider::class);
+        $this->timeProvider->shouldReceive('now')->andReturn(new DateTime('2025-01-01T00:00:00Z'));
         $service = new UserAccountService($repository, $this->timeProvider);
         $validator = new UserNameValidator();
 
@@ -43,15 +45,18 @@ class GetUserPlatformAgeControllerTest extends TestCase
      */
     public function gets400ForInvalidUsername(): void
     {
-        $_GET['name'] = 'ab';
+        $request = new Request();
+        $request->query->set('name', 'ab');
 
-        $response = $this->controller->__invoke();
+        $response = $this->controller->__invoke($request);
+        $responseData = json_decode($response->getContent(), true);
 
-        $this->assertEquals(400, http_response_code());
-        $this->assertJsonStringEqualsJsonString(
-            '{"error":"INVALID_REQUEST","message":"Name must be at least 3 characters long","status":400}',
-            $response
-        );
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals([
+            'error' => 'INVALID_REQUEST',
+            'message' => 'Name must be at least 3 characters long',
+            'status' => 400
+        ], $responseData);
     }
 
     /**
@@ -59,15 +64,18 @@ class GetUserPlatformAgeControllerTest extends TestCase
      */
     public function gets404ErrorForNonExistingtUser(): void
     {
-        $_GET['name'] = 'NonExistentUser';
+        $request = new Request();
+        $request->query->set('name', 'NonExistentUser');
 
-        $response = $this->controller->__invoke();
+        $response = $this->controller->__invoke($request);
+        $responseData = json_decode($response->getContent(), true);
 
-        $this->assertEquals(404, http_response_code());
-        $this->assertJsonStringEqualsJsonString(
-            '{"error":"USER_NOT_FOUND","message":"No user found with given name: NonExistentUser","status":404}',
-            $response
-        );
+        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals([
+            'error' => 'USER_NOT_FOUND',
+            'message' => 'No user found with given name: NonExistentUser',
+            'status' => 404
+        ], $responseData);
     }
 
     /**
@@ -75,17 +83,17 @@ class GetUserPlatformAgeControllerTest extends TestCase
      */
     public function getsUserAgeForExistingUser(): void
     {
-        $_GET['name'] = 'Ninja';
+        $request = new Request();
+        $request->query->set('name', 'Ninja');
 
-        $this->timeProvider->allows('now')->andReturns(new DateTime('2025-01-01T00:00:00Z'));
+        $response = $this->controller->__invoke($request);
+        $responseData = json_decode($response->getContent(), true);
 
-        $response = $this->controller->__invoke();
-        $responseData = json_decode($response, true);
-
-        $this->assertEquals(200, http_response_code());
-        $this->assertJsonStringEqualsJsonString(
-            '{"name":"Ninja","created_at":"2011-11-20T00:00:00Z","days_since_creation":4791}',
-            json_encode($responseData)
-        );
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals([
+            'name' => 'Ninja',
+            'created_at' => '2011-11-20T00:00:00Z',
+            'days_since_creation' => 4791
+        ], $responseData);
     }
 }

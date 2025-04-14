@@ -4,12 +4,15 @@
     "type": "project",
     "require": {
         "php": "^8.3",
-        "ext-json": "*"
+        "ext-json": "*",
+        "laravel/lumen-framework": "^10.0",
+        "vlucas/phpdotenv": "^5.6"
     },
     "require-dev": {
         "mockery/mockery": "^1.6",
         "phpunit/phpunit": "^10.0",
-        "squizlabs/php_codesniffer": "^3.7"
+        "squizlabs/php_codesniffer": "^3.7",
+        "fakerphp/faker": "^1.9.1"
     },
     "autoload": {
         "psr-4": {
@@ -26,9 +29,15 @@
         "test:coverage": "phpunit --coverage-html coverage",
         "cs-check": "phpcs",
         "cs-fix": "phpcbf",
-        "start": "php -S localhost:8000 -t public"
+        "start": "php -S localhost:8000 -t public",
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ]
     },
     "config": {
-        "sort-packages": true
-    }
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

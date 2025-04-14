@@ -1,10 +1,10 @@
 # Twitch Analytics PHP Project
 
-A PHP-based REST API that provides Twitch user account analytics, focusing on account age calculation based on display names.
+A PHP-based REST API that provides Twitch user account analytics, focusing on account age calculation based on display names. Built with Lumen, a fast micro-framework by Laravel.
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.3 or higher
 - Composer
 - PHP extensions: json
 
@@ -15,6 +15,129 @@ A PHP-based REST API that provides Twitch user account analytics, focusing on ac
 ```bash
 composer install
 ```
+3. Copy the environment file:
+```bash
+cp .env.example .env
+```
+
+## Development Setup
+
+### First Time Setup
+
+1. Install PHP 8.3 or higher:
+   ```bash
+   # macOS with Homebrew
+   brew install php@8.3
+
+   # Ubuntu/Debian
+   sudo apt-get install php8.3
+   ```
+
+2. Install Composer:
+   ```bash
+   # Download installer
+   php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+
+   # Install globally
+   sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+   ```
+
+3. Clone and setup the project:
+   ```bash
+   # Clone repository
+   git clone <repository-url>
+   cd twitch-analytics
+
+   # Install dependencies
+   composer install
+
+   # Setup environment
+   cp .env.example .env
+   ```
+
+### Running the Application
+
+There are several ways to run the application:
+
+1. **Using Composer Script** (Recommended for development):
+   ```bash
+   composer start
+   ```
+   This will start the server at http://localhost:8000
+
+2. **Using PHP's Built-in Server**:
+   ```bash
+   php -S localhost:8000 -t public
+   ```
+
+3. **Using Docker** (if available):
+   ```bash
+   docker-compose up -d
+   ```
+
+### Development Commands
+
+```bash
+# Run all tests
+composer test
+
+# Run specific test suites
+./vendor/bin/phpunit tests/Unit
+./vendor/bin/phpunit tests/Integration
+./vendor/bin/phpunit tests/E2E
+
+# Generate test coverage report
+composer test:coverage
+
+# Check code style
+composer cs-check
+
+# Fix code style automatically
+composer cs-fix
+```
+
+### Debugging
+
+1. **Enable Debug Mode**:
+   In your `.env` file, set:
+   ```
+   APP_DEBUG=true
+   ```
+
+2. **View Logs**:
+   - Application logs are in `storage/logs/lumen.log`
+   - PHP errors are logged based on your `php.ini` configuration
+
+3. **Using Xdebug**:
+   - Install Xdebug extension
+   - Configure your IDE for debugging
+   - Set breakpoints and debug as needed
+
+### Common Issues
+
+1. **Permission Issues**:
+   ```bash
+   # Fix storage permissions
+   chmod -R 777 storage
+   ```
+
+2. **Composer Issues**:
+   ```bash
+   # Clear composer cache
+   composer clear-cache
+
+   # Rebuild autoloader
+   composer dump-autoload
+   ```
+
+3. **Server Port Already in Use**:
+   ```bash
+   # Find process using port 8000
+   lsof -i :8000
+
+   # Kill the process
+   kill -9 <PID>
+   ```
 
 ## Running the Application
 
@@ -83,6 +206,25 @@ src/
         └── ApiUserRepository.php
 ```
 
+## Testing
+
+The project includes three types of tests:
+
+1. **Unit Tests**: Test individual components in isolation
+```bash
+./vendor/bin/phpunit tests/Unit
+```
+
+2. **Integration Tests**: Test component interactions
+```bash
+./vendor/bin/phpunit tests/Integration
+```
+
+3. **E2E Tests**: Test complete HTTP request/response cycle
+```bash
+./vendor/bin/phpunit tests/E2E
+```
+
 ## Error Handling
 
 The API returns appropriate HTTP status codes and error messages:
@@ -95,61 +237,152 @@ The API returns appropriate HTTP status codes and error messages:
 ```json
 {
     "error": "ERROR_TYPE",
-    "message": "Error description",
+    "message": "Detailed error message",
     "status": 400
 }
 ```
 
-## Development
+## Framework: Lumen
 
-The project follows PSR-12 coding standards and uses PHP_CodeSniffer for code style enforcement.
+This project uses Lumen, a micro-framework by Laravel. Here are the key benefits it provides:
 
-### Available Commands
+### Why Lumen?
 
-```bash
-# Run tests
-composer test
+1. **Performance**: Lumen is a lightweight version of Laravel, optimized for microservices and APIs
+2. **Testing Support**: Built-in testing utilities for HTTP requests, responses, and mocking
+3. **Dependency Injection**: Robust container for managing service dependencies
+4. **Routing**: Clean and efficient routing system
+5. **Middleware**: Easy to add request/response transformations
+6. **Error Handling**: Comprehensive exception handling system
 
-# Run tests with coverage report
-composer test:coverage
+### Key Framework Features Used
 
-# Check code style
-composer cs-check
+1. **Service Container**:
+   - Automatic dependency injection
+   - Service registration in `bootstrap/app.php`
+   - Easy service mocking in tests
 
-# Fix code style
-composer cs-fix
+2. **Request Handling**:
+   - Clean access to request parameters
+   - Built-in request validation
+   - JSON response formatting
 
-# Start development server
-composer start
+3. **Testing Utilities**:
+   - HTTP request simulation
+   - Response assertions
+   - Service mocking
+   - Isolated test environment
+
+### Migration to Lumen
+
+The project was migrated from vanilla PHP to Lumen to improve:
+
+1. **Code Organization**:
+   - Clear service registration
+   - Standardized request/response handling
+   - Better dependency management
+
+2. **Testing**:
+   - End-to-end HTTP testing
+   - Better service mocking
+   - More reliable assertions
+
+3. **Maintainability**:
+   - Framework-provided best practices
+   - Standard service container
+   - Consistent error handling
+
+To migrate a similar project to Lumen:
+
+1. Add Lumen dependencies:
+```json
+{
+    "require": {
+        "laravel/lumen-framework": "^10.0",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
 ```
 
-### Testing
+2. Create Lumen structure:
+   - `bootstrap/app.php` for application setup
+   - `routes/api.php` for route definitions
+   - `.env` for configuration
 
-The project uses PHPUnit for testing and Mockery for mocking dependencies. Tests are organized into two categories:
+3. Update controllers:
+   - Extend `Laravel\Lumen\Routing\Controller`
+   - Use `JsonResponse` for responses
+   - Use dependency injection
+   - Replace `$_GET`/`$_POST` with Request object
 
-- **Unit Tests**: Located in `tests/Unit/`
-- **Integration Tests**: Located in `tests/Integration/`
+Example controller update:
+```php
+use Laravel\Lumen\Routing\Controller as BaseController;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-To run tests with coverage report:
-```bash
-composer test:coverage
+class MyController extends BaseController
+{
+    public function __invoke(Request $request): JsonResponse
+    {
+        $name = $request->get('name');  // Instead of $_GET['name']
+        return new JsonResponse(['data' => $result]);
+    }
+}
 ```
-This will generate an HTML coverage report in the `coverage` directory.
 
-### Architecture
+4. Register services:
+   - Use `$app->singleton()` for service registration
+   - Configure service container in `bootstrap/app.php`
+   - Set up proper dependency injection
 
-The project follows a clean architecture approach with the following components:
+5. Update tests:
+   - Use Lumen's `TestCase` for e2e tests
+   - Update integration tests to use Request/Response objects
+   - Implement proper service mocking
 
-- **Controllers**: Handle HTTP requests/responses and input validation
-- **Services**: Implement business logic and orchestrate operations
-- **Domain**: Contains core business models and interfaces
-- **Infrastructure**: Implements data access and external service integration
+Example test migration:
+```php
+// Before
+public function testEndpoint(): void
+{
+    $_GET['name'] = 'testuser';
+    $response = $this->controller->__invoke();
+    $this->assertEquals(200, http_response_code());
+    $this->assertJsonStringEqualsJsonString(
+        '{"data":"value"}',
+        $response
+    );
+}
 
-### API Client
+// After
+public function testEndpoint(): void
+{
+    $request = new Request();
+    $request->query->set('name', 'testuser');
 
-The project includes two implementations for the Twitch API client:
+    $response = $this->controller->__invoke($request);
+    $responseData = json_decode($response->getContent(), true);
 
-1. `FakeTwitchApiClient`: Provides mock data for development and testing
-2. `TwitchApiClientInterface`: Interface for implementing real Twitch API integration
+    $this->assertEquals(200, $response->getStatusCode());
+    $this->assertEquals(['data' => 'value'], $responseData);
+}
+```
 
-To implement real Twitch API integration, create a new class implementing `TwitchApiClientInterface` and update the dependency injection in `index.php`.
+Key testing changes:
+- Replace global `$_GET`/`$_POST` with `Request` objects
+- Use `JsonResponse` methods instead of raw HTTP functions
+- Use proper assertion methods for response status and content
+- Take advantage of Lumen's testing utilities for cleaner tests
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Write tests for your changes
+4. Ensure all tests pass
+5. Submit a pull request
+
+## License
+
+This project is open-sourced software licensed under the MIT license.

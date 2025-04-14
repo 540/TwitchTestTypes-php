@@ -4,68 +4,51 @@ declare(strict_types=1);
 
 namespace TwitchAnalytics\Controllers\GetUserPlatformAge;
 
+use Laravel\Lumen\Routing\Controller as BaseController;
 use TwitchAnalytics\Application\Services\UserAccountService;
 use TwitchAnalytics\Domain\Exceptions\UserNotFoundException;
 use TwitchAnalytics\Domain\Exceptions\ApplicationException;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class GetUserPlatformAgeController
+class GetUserPlatformAgeController extends BaseController
 {
-    private int $statusCode = 200;
+    private UserAccountService $userAccountService;
+    private UserNameValidator $userNameValidator;
 
     public function __construct(
-        private UserAccountService $userAccountService,
-        private UserNameValidator $userNameValidator
+        UserAccountService $userAccountService,
+        UserNameValidator $userNameValidator
     ) {
+        $this->userAccountService = $userAccountService;
+        $this->userNameValidator = $userNameValidator;
     }
 
-    public function __invoke(): string
+    public function __invoke(Request $request): JsonResponse
     {
         try {
-            $name = $this->userNameValidator->validate($_GET['name'] ?? null);
+            $name = $this->userNameValidator->validate($request->get('name'));
             $result = $this->userAccountService->getAccountAge($name);
 
-            return $this->sendJsonResponse($result);
+            return new JsonResponse($result);
         } catch (ValidationException $e) {
-            return $this->sendErrorResponse($e->getMessage(), 400);
+            return new JsonResponse([
+                'error' => 'INVALID_REQUEST',
+                'message' => $e->getMessage(),
+                'status' => 400
+            ], 400);
         } catch (UserNotFoundException $e) {
-            return $this->sendErrorResponse($e->getMessage(), 404);
-        } catch (ApplicationException $e) {
-            return $this->sendErrorResponse($e->getMessage(), 400);
+            return new JsonResponse([
+                'error' => 'USER_NOT_FOUND',
+                'message' => $e->getMessage(),
+                'status' => 404
+            ], 404);
         } catch (\Exception $e) {
-            return $this->sendErrorResponse('An unexpected error occurred', 500);
+            return new JsonResponse([
+                'error' => 'INTERNAL_ERROR',
+                'message' => 'An unexpected error occurred',
+                'status' => 500
+            ], 500);
         }
-    }
-
-    private function sendJsonResponse(array $data, int $statusCode = 200): string
-    {
-        $this->statusCode = $statusCode;
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
-        return json_encode($data);
-    }
-
-    private function sendErrorResponse(string $message, int $statusCode): string
-    {
-        $response = [
-            'error' => $this->getErrorType($statusCode),
-            'message' => $message,
-            'status' => $statusCode
-        ];
-
-        return $this->sendJsonResponse($response, $statusCode);
-    }
-
-    private function getErrorType(int $statusCode): string
-    {
-        return match ($statusCode) {
-            400 => 'INVALID_REQUEST',
-            404 => 'USER_NOT_FOUND',
-            default => 'INTERNAL_ERROR',
-        };
-    }
-
-    public function getStatusCode(): int
-    {
-        return $this->statusCode;
     }
 }

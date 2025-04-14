@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TwitchAnalytics\Application\Services;
 
+use DateMalformedStringException;
 use DateTime;
 use TwitchAnalytics\Domain\Interfaces\UserRepositoryInterface;
 use TwitchAnalytics\Domain\Exceptions\UserNotFoundException;
@@ -35,7 +36,7 @@ class UserAccountService
     }
 
     /**
-     * @throws \DateMalformedStringException
+     * @throws DateMalformedStringException
      */
     private function calculateDaysSinceCreation(string $createdAt): int
     {

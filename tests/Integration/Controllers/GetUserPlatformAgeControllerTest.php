@@ -43,6 +43,24 @@ class GetUserPlatformAgeControllerTest extends TestCase
     /**
      * @test
      */
+    public function gets400WhenNameParameterIsMissing(): void
+    {
+        $request = new Request();
+
+        $response = $this->controller->__invoke($request);
+        $responseData = json_decode($response->getContent(), true);
+
+        $this->assertEquals(400, $response->getStatusCode());
+        $this->assertEquals([
+            'error' => 'INVALID_REQUEST',
+            'message' => 'Name parameter is required',
+            'status' => 400
+        ], $responseData);
+    }
+
+    /**
+     * @test
+     */
     public function gets400ForInvalidUsername(): void
     {
         $request = new Request();

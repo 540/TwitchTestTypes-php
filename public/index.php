@@ -9,6 +9,7 @@ use TwitchAnalytics\Application\Services\UserAccountService;
 use TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository;
 use TwitchAnalytics\Infrastructure\ApiClient\FakeTwitchApiClient;
 use TwitchAnalytics\Controllers\GetUserPlatformAge\UserNameValidator;
+use TwitchAnalytics\Infrastructure\Time\SystemTimeProvider;
 
 // CORS headers
 header('Access-Control-Allow-Origin: *');
@@ -26,7 +27,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 // Dependency injection
 $apiClient = new FakeTwitchApiClient();
 $repository = new ApiUserRepository($apiClient);
-$service = new UserAccountService($repository);
+$timeProvider = new SystemTimeProvider();
+$service = new UserAccountService($repository, $timeProvider);
 $validator = new UserNameValidator();
 $controller = new GetUserPlatformAgeController($service, $validator);
 

@@ -12,7 +12,7 @@
          failOnWarning="true">
     <testsuites>
         <testsuite name="Application">
-            <directory>tests/Application</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
@@ -21,14 +21,6 @@
             <directory>src</directory>
         </include>
     </source>
-
-    <coverage>
-        <report>
-            <html outputDirectory="coverage"/>
-            <clover outputFile="coverage/clover.xml"/>
-        </report>
-    </coverage>
-
     <php>
         <env name="APP_ENV" value="testing"/>
     </php>

@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace TwitchAnalytics\Tests\Integration\Controllers;
 
+use DateTime;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 use TwitchAnalytics\Controllers\GetUserPlatformAge\GetUserPlatformAgeController;
 use TwitchAnalytics\Application\Services\UserAccountService;
 use TwitchAnalytics\Infrastructure\Repositories\ApiUserRepository;
 use TwitchAnalytics\Infrastructure\ApiClient\FakeTwitchApiClient;
 use TwitchAnalytics\Controllers\GetUserPlatformAge\UserNameValidator;
-use TwitchAnalytics\Infrastructure\Time\SystemTimeProvider;
+use TwitchAnalytics\Domain\Time\TimeProvider;
 
 class GetUserPlatformAgeControllerTest extends TestCase
 {
     private GetUserPlatformAgeController $controller;
+    private TimeProvider $timeProvider;
 
     protected function setUp(): void
     {
@@ -22,11 +25,17 @@ class GetUserPlatformAgeControllerTest extends TestCase
 
         $apiClient = new FakeTwitchApiClient();
         $repository = new ApiUserRepository($apiClient);
-        $timeProvider = new SystemTimeProvider();
-        $service = new UserAccountService($repository, $timeProvider);
+        $this->timeProvider = Mockery::mock(TimeProvider::class);
+        $service = new UserAccountService($repository, $this->timeProvider);
         $validator = new UserNameValidator();
 
         $this->controller = new GetUserPlatformAgeController($service, $validator);
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 
     /**
@@ -68,13 +77,14 @@ class GetUserPlatformAgeControllerTest extends TestCase
     {
         $_GET['name'] = 'Ninja';
 
-        $response = $this->controller->__invoke();
+        $this->timeProvider->allows('now')->andReturns(new DateTime('2025-01-01T00:00:00Z'));
 
+        $response = $this->controller->__invoke();
         $responseData = json_decode($response, true);
 
         $this->assertEquals(200, http_response_code());
         $this->assertJsonStringEqualsJsonString(
-            '{"name":"Ninja","created_at":"2011-11-20T00:00:00Z","days_since_creation": 4894}',
+            '{"name":"Ninja","created_at":"2011-11-20T00:00:00Z","days_since_creation":4791}',
             json_encode($responseData)
         );
     }
